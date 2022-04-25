@@ -1,0 +1,25 @@
+#syntax=docker/dockerfile:1
+FROM continuumio/miniconda3
+MAINTAINER gordon
+WORKDIR /app
+RUN apt-get update
+RUN apt-get install -y wget gcc g++ clang libhdf5-dev libc-dev build-essential sudo && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt requirements.txt
+COPY requirements_pip.txt requirements_pip.txt
+COPY ta-lib-0.4.0-src.tar.gz ta-lib-0.4.0-src.tar.gz
+RUN conda create -n fyp python=3.8.12
+RUn conda init bash
+SHELL ["/bin/bash", "--login", "-c"] 
+RUN conda config --append channels conda-forge
+RUN conda config --append channels matsci
+RUN python --version
+RUN  tar -xvf  ta-lib-0.4.0-src.tar.gz && cd ta-lib\
+&& ./configure --prefix=/usr\
+&& make\
+&&  make install
+# && pip install --upgrade pip --user \
+RUN pip install TA-Lib numpy yfinance keras dash dash_bootstrap_components pandas_datareader tensorflow matplotlib scikit-learn --no-cache-dir
+# RUN echo "conda activate FYP" >> ~/.bashrc
+COPY . .
+EXPOSE 8050
+CMD ["python3","app.py"]
